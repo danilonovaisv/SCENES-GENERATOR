@@ -50,18 +50,16 @@ export async function POST(req: Request) {
 
       for (const part of response.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) {
-          return `data:image/png;base64,${part.inlineData.data}`;
+          return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
         }
       }
       throw new Error(`Failed to generate ${shotType} shot`);
     };
 
-    // Generate the 3 shots in parallel
-    const [wide, medium, closeup] = await Promise.all([
-      generateShot("wide"),
-      generateShot("medium"),
-      generateShot("closeup")
-    ]);
+    // Generate the 3 shots sequentially to avoid rate limits
+    const wide = await generateShot("wide");
+    const medium = await generateShot("medium");
+    const closeup = await generateShot("closeup");
 
     return NextResponse.json({ wide, medium, closeup });
   } catch (error: any) {

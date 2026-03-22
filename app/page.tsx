@@ -62,13 +62,16 @@ export default function SceneGenerator() {
         body: formData,
       });
 
-      if (!response.ok) throw new Error('Failed to generate scenes');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || 'Failed to generate scenes');
+      }
       
       const data = await response.json();
       setResults(data);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Ocorreu um erro ao gerar as cenas. Tente novamente.');
+      alert(`Ocorreu um erro ao gerar as cenas: ${error.message}`);
     } finally {
       setIsGenerating(false);
     }
